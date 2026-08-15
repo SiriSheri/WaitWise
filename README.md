@@ -61,15 +61,16 @@ WaitWise replaces physical queues with a **Dynamic Virtual Queue System**:
 ## 🏗️ System Architecture
 
 ```mermaid
+
 graph TD
     Client["React + Vite Single-Page Application (SPA)"]
     API["Express.js REST API Layer"]
     SocketServer["Socket.IO Real-Time Server"]
-    QueueEngine["In-Memory & SQLite Queue Engine"]
+    QueueEngine["In-Memory and SQLite Queue Engine"]
     DB[("Embedded SQLite Engine (node:sqlite)")]
 
     Client -->|HTTP / JSON REST| API
-    Client <-->|WebSockets (Rooms & Broadcasts)| SocketServer
+    Client <-->|WebSockets - Rooms and Broadcasts| SocketServer
     API --> QueueEngine
     QueueEngine --> DB
     QueueEngine --> SocketServer
