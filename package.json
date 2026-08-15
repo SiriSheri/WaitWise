@@ -1,0 +1,29 @@
+{
+  "name": "waitwise-platform",
+  "version": "1.0.0",
+  "description": "WaitWise - Real-time smart waiting-time and queue management platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix server run build && npm --prefix client run build",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "seed": "npm --prefix server run seed",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "keywords": [
+    "queue-management",
+    "wait-time-optimization",
+    "real-time",
+    "socket.io",
+    "react",
+    "sqlite"
+  ],
+  "author": "WaitWise Team",
+  "license": "MIT"
+}
