@@ -24,9 +24,15 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('customer', 'staff', 'admin')),
+  role TEXT NOT NULL DEFAULT 'customer' CHECK(role IN ('customer', 'staff', 'admin')),
+  status TEXT NOT NULL DEFAULT 'approved' CHECK(status IN ('pending', 'approved', 'rejected', 'suspended')),
+  job_title TEXT,
+  employee_id TEXT,
   phone TEXT,
   business_id TEXT REFERENCES businesses(id) ON DELETE SET NULL,
+  verified_at TEXT,
+  verified_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+  rejection_reason TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -91,6 +97,8 @@ CREATE TABLE IF NOT EXISTS wait_time_stats (
   sample_count INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE INDEX IF NOT EXISTS idx_users_role_status ON users(role, status);
+CREATE INDEX IF NOT EXISTS idx_users_business ON users(business_id);
 CREATE INDEX IF NOT EXISTS idx_queue_business_status ON queue_entries(business_id, status);
 CREATE INDEX IF NOT EXISTS idx_queue_user ON queue_entries(user_id);
 CREATE INDEX IF NOT EXISTS idx_counters_business ON counters(business_id);

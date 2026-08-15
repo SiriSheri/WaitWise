@@ -16,7 +16,11 @@ function getHeaders(): HeadersInit {
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || 'Request failed');
+    const error: any = new Error(data.error || 'Request failed');
+    error.status = res.status;
+    error.accountStatus = data.status;
+    error.rejectionReason = data.rejection_reason;
+    throw error;
   }
   return data;
 }
@@ -24,12 +28,29 @@ async function handleResponse<T>(res: Response): Promise<T> {
 export const api = {
   // Auth
   auth: {
-    register: (payload: { name: string; email: string; password: string; phone?: string; role?: string; business_id?: string }) =>
+    register: (payload: { name: string; email: string; password: string; phone?: string }) =>
       fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(payload),
       }).then((r) => handleResponse<{ user: User; token: string; message: string }>(r)),
+
+    staffRegister: (payload: {
+      name: string;
+      email: string;
+      password: string;
+      phone?: string;
+      business_id: string;
+      job_title: string;
+      employee_id: string;
+    }) =>
+      fetch(`${API_BASE}/auth/staff-register`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      }).then((r) =>
+        handleResponse<{ user: User; status: string; message: string }>(r)
+      ),
 
     login: (payload: { email: string; password: string }) =>
       fetch(`${API_BASE}/auth/login`, {
@@ -42,6 +63,67 @@ export const api = {
       fetch(`${API_BASE}/auth/me`, {
         headers: getHeaders(),
       }).then((r) => handleResponse<{ user: User }>(r)),
+
+    logout: () =>
+      fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then((r) => handleResponse<{ message: string }>(r)),
+  },
+
+  // Admin Verification Portal
+  admin: {
+    getVerifications: (params?: { status?: string; businessId?: string }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.status) searchParams.append('status', params.status);
+      if (params?.businessId) searchParams.append('businessId', params.businessId);
+      const qs = searchParams.toString();
+      return fetch(`${API_BASE}/admin/verifications${qs ? `?${qs}` : ''}`, {
+        headers: getHeaders(),
+      }).then((r) =>
+        handleResponse<{
+          staff: Array<
+            User & {
+              business_name?: string;
+              business_category?: string;
+              verified_by_name?: string;
+            }
+          >;
+          summary: {
+            pending: number;
+            approved: number;
+            rejected: number;
+            suspended: number;
+            total: number;
+          };
+        }>(r)
+      );
+    },
+
+    approve: (userId: string) =>
+      fetch(`${API_BASE}/admin/verifications/${userId}/approve`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then((r) => handleResponse<{ message: string; user: User }>(r)),
+
+    reject: (userId: string, reason: string) =>
+      fetch(`${API_BASE}/admin/verifications/${userId}/reject`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ reason }),
+      }).then((r) => handleResponse<{ message: string; rejection_reason: string }>(r)),
+
+    suspend: (userId: string) =>
+      fetch(`${API_BASE}/admin/verifications/${userId}/suspend`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then((r) => handleResponse<{ message: string }>(r)),
+
+    reactivate: (userId: string) =>
+      fetch(`${API_BASE}/admin/verifications/${userId}/reactivate`, {
+        method: 'POST',
+        headers: getHeaders(),
+      }).then((r) => handleResponse<{ message: string }>(r)),
   },
 
   // Businesses

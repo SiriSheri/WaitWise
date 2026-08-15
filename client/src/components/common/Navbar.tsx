@@ -20,7 +20,7 @@ import {
 
 export function Navbar() {
   const [location] = useLocation();
-  const { user, isAuthenticated, isStaff, logout } = useAuth();
+  const { user, isAuthenticated, isStaff, isAdmin, logout } = useAuth();
   const { isConnected } = useSocket();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
@@ -211,8 +211,16 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Staff Switch / Portal Link */}
-            {isStaff ? (
+            {/* Staff / Admin Switch Link */}
+            {isAdmin ? (
+              <Link
+                href="/admin/verifications"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition-colors"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-600" />
+                Admin Portal
+              </Link>
+            ) : isStaff ? (
               <Link
                 href="/staff/dashboard"
                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
@@ -225,7 +233,7 @@ export function Navbar() {
                 href="/staff/login"
                 className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
               >
-                Staff Login
+                Staff Portal
               </Link>
             )}
 

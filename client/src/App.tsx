@@ -15,7 +15,9 @@ import { UserDashboardPage } from './pages/UserDashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { StaffLoginPage } from './pages/StaffLoginPage';
+import { StaffRegisterPage } from './pages/StaffRegisterPage';
 import { StaffDashboardPage } from './pages/StaffDashboardPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { BusinessSettingsPage } from './pages/BusinessSettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -37,8 +39,11 @@ export function App() {
                 <Route path="/login" component={LoginPage} />
                 <Route path="/register" component={RegisterPage} />
                 <Route path="/staff/login" component={StaffLoginPage} />
+                <Route path="/staff/register" component={StaffRegisterPage} />
                 <Route path="/staff/dashboard" component={StaffDashboardPage} />
                 <Route path="/staff/settings/:businessId" component={BusinessSettingsPage} />
+                <Route path="/admin/verifications" component={AdminDashboardPage} />
+                <Route path="/admin/dashboard" component={AdminDashboardPage} />
                 <Route component={NotFoundPage} />
               </Switch>
             </main>

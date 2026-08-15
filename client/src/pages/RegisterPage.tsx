@@ -25,7 +25,6 @@ export function RegisterPage() {
         email: email.trim().toLowerCase(),
         password,
         phone: phone.trim() || undefined,
-        role: 'customer',
       });
       navigate('/dashboard');
     } catch (err: any) {

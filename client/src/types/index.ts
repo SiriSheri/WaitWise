@@ -1,4 +1,5 @@
 export type UserRole = 'customer' | 'staff' | 'admin';
+export type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type BusinessCategory = 'hospital' | 'clinic' | 'salon' | 'government' | 'restaurant' | 'service_center' | 'bank';
 export type BusinessStatus = 'open' | 'busy' | 'almost_full' | 'closed' | 'paused';
 export type QueueStatus = 'waiting' | 'called' | 'serving' | 'completed' | 'skipped' | 'cancelled';
@@ -9,8 +10,15 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
+  job_title?: string | null;
+  employee_id?: string | null;
   phone?: string | null;
   business_id?: string | null;
+  business_name?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
 }
 
@@ -28,6 +36,7 @@ export interface Business {
   avg_service_time_mins: number;
   image_url: string | null;
   created_at: string;
+  // Computed fields
   waiting_count?: number;
   serving_count?: number;
   current_token?: string | null;
@@ -76,6 +85,7 @@ export interface QueueEntry {
   called_at: string | null;
   served_at: string | null;
   completed_at: string | null;
+  // Live calculated fields
   position?: number;
   people_ahead?: number;
   is_excessive_wait?: boolean;
@@ -91,25 +101,6 @@ export interface Notification {
   message: string;
   is_read: number;
   created_at: string;
-}
-
-export interface HourlyStat {
-  hour: number;
-  hourLabel: string;
-  avgWaitMins: number;
-  avgServiceMins: number;
-  sampleCount: number;
-}
-
-export interface SmartInsights {
-  currentHour: number;
-  currentStatus: string;
-  bestOffPeak: Array<{
-    hour: number;
-    timeRange: string;
-    avgWaitMins: number;
-  }>;
-  hourlyStats: HourlyStat[];
 }
 
 export interface QueueState {
@@ -128,4 +119,19 @@ export interface QueueState {
     avgServiceMins: number;
     isExcessiveDelayDetected: boolean;
   };
+}
+
+export interface SmartInsights {
+  currentStatus: 'low' | 'moderate' | 'peak';
+  currentHour: number;
+  hourlyStats: Array<{
+    hour: number;
+    avgWaitMins: number;
+    avgServiceMins: number;
+    hourLabel: string;
+  }>;
+  bestOffPeak: Array<{
+    timeRange: string;
+    avgWaitMins: number;
+  }>;
 }

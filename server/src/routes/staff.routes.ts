@@ -3,19 +3,32 @@ import { z } from 'zod';
 import { QueueEngine } from '../services/queueEngine.js';
 import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth.js';
 import { execute, queryOne } from '../db/index.js';
-import { Counter } from '../types/index.js';
+import { Counter, QueueEntry } from '../types/index.js';
 import { broadcastQueueUpdate } from '../sockets/queueSocket.js';
 import crypto from 'node:crypto';
 
 const router = Router();
 
-// All routes require Staff or Admin role
+// All staff routes require authenticated staff or admin role with approved status
 router.use(authenticateToken);
 router.use(requireRole(['staff', 'admin']));
+
+// Helper to check organization authorization
+function checkBusinessAuthorization(req: AuthRequest, targetBusinessId: string): boolean {
+  if (req.user?.role === 'admin') return true;
+  return req.user?.business_id === targetBusinessId;
+}
 
 // Get full live queue state for staff dashboard
 router.get('/queue-state/:businessId', (req: AuthRequest, res: Response) => {
   const businessId = String(req.params.businessId);
+
+  if (!checkBusinessAuthorization(req, businessId)) {
+    res.status(403).json({
+      error: 'Forbidden: You are only authorized to view queues for your assigned organization.',
+    });
+    return;
+  }
 
   const state = QueueEngine.getBusinessQueueState(businessId);
   if (!state) {
@@ -35,6 +48,14 @@ const callNextSchema = z.object({
 router.post('/call-next', (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const data = callNextSchema.parse(req.body);
+
+    if (!checkBusinessAuthorization(req, data.businessId)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to call tickets for your assigned organization.',
+      });
+      return;
+    }
+
     const staffId = req.user!.id;
 
     const ticket = QueueEngine.callNextTicket({
@@ -71,6 +92,19 @@ router.post('/ticket/:id/status', (req: AuthRequest, res: Response, next: NextFu
     const id = String(req.params.id);
     const { status, notes } = updateStatusSchema.parse(req.body);
 
+    const existingTicket = queryOne<QueueEntry>(`SELECT business_id FROM queue_entries WHERE id = ?`, [id]);
+    if (!existingTicket) {
+      res.status(404).json({ error: 'Ticket not found.' });
+      return;
+    }
+
+    if (!checkBusinessAuthorization(req, existingTicket.business_id)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to update tickets for your assigned organization.',
+      });
+      return;
+    }
+
     const updatedTicket = QueueEngine.updateTicketStatus({
       ticketId: id,
       status,
@@ -100,6 +134,13 @@ router.post('/walk-in', (req: AuthRequest, res: Response, next: NextFunction) =>
   try {
     const data = walkInSchema.parse(req.body);
 
+    if (!checkBusinessAuthorization(req, data.businessId)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to issue walk-in tickets for your assigned organization.',
+      });
+      return;
+    }
+
     const ticket = QueueEngine.joinQueue({
       businessId: data.businessId,
       serviceId: data.serviceId,
@@ -128,6 +169,13 @@ router.post('/pause-queue', (req: AuthRequest, res: Response, next: NextFunction
       return;
     }
 
+    if (!checkBusinessAuthorization(req, businessId)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to change queue status for your assigned organization.',
+      });
+      return;
+    }
+
     execute(`UPDATE businesses SET status = ? WHERE id = ?`, [status, businessId]);
 
     const state = QueueEngine.getBusinessQueueState(businessId);
@@ -150,6 +198,13 @@ router.post('/counter/toggle', (req: AuthRequest, res: Response, next: NextFunct
       return;
     }
 
+    if (!checkBusinessAuthorization(req, counter.business_id)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to manage counters for your assigned organization.',
+      });
+      return;
+    }
+
     execute(`UPDATE counters SET is_active = ? WHERE id = ?`, [isActive ? 1 : 0, counterId]);
 
     const state = QueueEngine.getBusinessQueueState(counter.business_id);
@@ -167,6 +222,13 @@ router.post('/counter/create', (req: AuthRequest, res: Response, next: NextFunct
     const { businessId, name } = req.body;
     if (!businessId || !name) {
       res.status(400).json({ error: 'Business ID and Name are required' });
+      return;
+    }
+
+    if (!checkBusinessAuthorization(req, businessId)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to create counters for your assigned organization.',
+      });
       return;
     }
 
@@ -192,6 +254,13 @@ router.post('/service/create', (req: AuthRequest, res: Response, next: NextFunct
     const { businessId, name, description, defaultDurationMins, price } = req.body;
     if (!businessId || !name) {
       res.status(400).json({ error: 'Business ID and Name are required' });
+      return;
+    }
+
+    if (!checkBusinessAuthorization(req, businessId)) {
+      res.status(403).json({
+        error: 'Forbidden: You are only authorized to create services for your assigned organization.',
+      });
       return;
     }
 

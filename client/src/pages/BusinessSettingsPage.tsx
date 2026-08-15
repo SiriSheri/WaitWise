@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useRoute, Link } from 'wouter';
+import { useRoute, useLocation, Link } from 'wouter';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { Business, Service, Counter } from '../types';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -13,8 +14,10 @@ import {
 } from 'lucide-react';
 
 export function BusinessSettingsPage() {
+  const [, navigate] = useLocation();
   const [, params] = useRoute('/staff/settings/:businessId');
   const businessId = params?.businessId || '';
+  const { user, isStaff, isAdmin, isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [business, setBusiness] = useState<Business | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -47,8 +50,17 @@ export function BusinessSettingsPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!isAuthenticated || !isStaff) {
+      navigate('/staff/login');
+      return;
+    }
+    if (!isAdmin && user?.business_id && user.business_id !== businessId) {
+      navigate('/staff/dashboard');
+      return;
+    }
     loadData();
-  }, [businessId]);
+  }, [authLoading, isAuthenticated, isStaff, isAdmin, user?.business_id, businessId]);
 
   const handleUpdateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();

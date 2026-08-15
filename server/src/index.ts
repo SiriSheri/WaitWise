@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes.js';
 import businessRoutes from './routes/business.routes.js';
 import queueRoutes from './routes/queue.routes.js';
 import staffRoutes from './routes/staff.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import { registerSocketHandlers } from './sockets/queueSocket.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -43,6 +44,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/queue', queueRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware

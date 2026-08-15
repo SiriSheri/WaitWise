@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { api } from '../lib/api';
 
 interface AuthContextType {
@@ -11,7 +11,16 @@ interface AuthContextType {
   isAdmin: boolean;
   isCustomer: boolean;
   login: (credentials: { email: string; password: string }) => Promise<User>;
-  register: (payload: { name: string; email: string; password: string; phone?: string; role?: UserRole; business_id?: string }) => Promise<User>;
+  register: (payload: { name: string; email: string; password: string; phone?: string }) => Promise<User>;
+  staffRegister: (payload: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    business_id: string;
+    job_title: string;
+    employee_id: string;
+  }) => Promise<{ user: User; status: string; message: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -48,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user;
   };
 
-  const register = async (payload: { name: string; email: string; password: string; phone?: string; role?: UserRole; business_id?: string }) => {
+  const register = async (payload: { name: string; email: string; password: string; phone?: string }) => {
     const res = await api.auth.register(payload);
     localStorage.setItem('waitwise_token', res.token);
     setToken(res.token);
@@ -56,10 +65,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user;
   };
 
+  const staffRegister = async (payload: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    business_id: string;
+    job_title: string;
+    employee_id: string;
+  }) => {
+    return await api.auth.staffRegister(payload);
+  };
+
   const logout = () => {
     localStorage.removeItem('waitwise_token');
     setToken(null);
     setUser(null);
+    api.auth.logout().catch(() => {});
   };
 
   const refreshUser = async () => {
@@ -72,6 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const isApprovedStaff = (user?.role === 'staff' && user?.status === 'approved') || user?.role === 'admin';
+
   return (
     <AuthContext.Provider
       value={{
@@ -79,11 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isLoading,
         isAuthenticated: !!user,
-        isStaff: user?.role === 'staff' || user?.role === 'admin',
+        isStaff: isApprovedStaff,
         isAdmin: user?.role === 'admin',
         isCustomer: user?.role === 'customer',
         login,
         register,
+        staffRegister,
         logout,
         refreshUser,
       }}

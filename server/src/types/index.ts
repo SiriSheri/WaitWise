@@ -1,4 +1,5 @@
 export type UserRole = 'customer' | 'staff' | 'admin';
+export type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type BusinessCategory = 'hospital' | 'clinic' | 'salon' | 'government' | 'restaurant' | 'service_center' | 'bank';
 export type BusinessStatus = 'open' | 'busy' | 'almost_full' | 'closed' | 'paused';
 export type QueueStatus = 'waiting' | 'called' | 'serving' | 'completed' | 'skipped' | 'cancelled';
@@ -10,8 +11,15 @@ export interface User {
   email: string;
   password_hash?: string;
   role: UserRole;
+  status: UserStatus;
+  job_title?: string | null;
+  employee_id?: string | null;
   phone?: string | null;
   business_id?: string | null;
+  business_name?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
 }
 
@@ -111,6 +119,7 @@ export interface JWTPayload {
   id: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
   name: string;
   business_id?: string | null;
 }
@@ -131,4 +140,19 @@ export interface QueueState {
     avgServiceMins: number;
     isExcessiveDelayDetected: boolean;
   };
+}
+
+export interface SmartInsights {
+  currentStatus: 'low' | 'moderate' | 'peak';
+  currentHour: number;
+  hourlyStats: Array<{
+    hour: number;
+    avgWaitMins: number;
+    avgServiceMins: number;
+    hourLabel: string;
+  }>;
+  bestOffPeak: Array<{
+    timeRange: string;
+    avgWaitMins: number;
+  }>;
 }
