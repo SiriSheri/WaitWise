@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -30,8 +30,8 @@ app.use(express.json());
 // Register Socket.IO Handlers & Broadcasters
 registerSocketHandlers(io);
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check (explicitly typed req and res to fix TS7006)
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'WaitWise Real-Time Server',
