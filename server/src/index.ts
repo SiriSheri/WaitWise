@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import businessRoutes from './routes/business.routes.js';
 import queueRoutes from './routes/queue.routes.js';
@@ -10,8 +10,6 @@ import staffRoutes from './routes/staff.routes.js';
 import notificationRoutes from './routes/notifications.routes.js';
 import { registerSocketHandlers } from './sockets/queueSocket.js';
 import { errorHandler } from './middleware/errorHandler.js';
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);

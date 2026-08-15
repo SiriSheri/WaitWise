@@ -21,6 +21,11 @@ export function WalkInModal({ businessId, services, onClose, onSuccess }: WalkIn
   const [createdTicket, setCreatedTicket] = useState<QueueEntry | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Sync serviceId when services array loads/updates
+  if (!serviceId && services.length > 0) {
+    setServiceId(services[0].id);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {

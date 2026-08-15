@@ -22,7 +22,7 @@ import {
 
 export function StaffDashboardPage() {
   const [, navigate] = useLocation();
-  const { user, isStaff, isAuthenticated } = useAuth();
+  const { user, isStaff, isAuthenticated, isLoading: authLoading } = useAuth();
   const { joinBusiness, leaveBusiness, socket } = useSocket();
 
   // Default to user's assigned business, or Metro Hospital
@@ -34,6 +34,13 @@ export function StaffDashboardPage() {
   const [selectedCounterId, setSelectedCounterId] = useState<string>('');
   const [isWalkInOpen, setIsWalkInOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Sync businessId when authenticated staff user loads
+  useEffect(() => {
+    if (user?.business_id) {
+      setBusinessId(user.business_id);
+    }
+  }, [user?.business_id]);
 
   // Load all businesses for quick switching
   useEffect(() => {
@@ -60,6 +67,7 @@ export function StaffDashboardPage() {
   }, [businessId, selectedCounterId]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated || !isStaff) {
       navigate('/staff/login');
       return;
@@ -84,7 +92,7 @@ export function StaffDashboardPage() {
         socket.off('queue_updated', handleQueueUpdate);
       }
     };
-  }, [businessId, isAuthenticated, isStaff, joinBusiness, leaveBusiness, loadQueueState, navigate, socket]);
+  }, [authLoading, businessId, isAuthenticated, isStaff, joinBusiness, leaveBusiness, loadQueueState, navigate, socket]);
 
   const selectedCounter = queueState?.counters.find((c) => c.id === selectedCounterId) || null;
   const activeServingTicket = queueState?.currentlyServing.find(
