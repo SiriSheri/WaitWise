@@ -1,6 +1,8 @@
 import { Business, Service, QueueEntry, QueueState, User, Notification, SmartInsights } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://waitwise-server.onrender.com/api';
 
 function getHeaders(): HeadersInit {
   const headers: Record<string, string> = {

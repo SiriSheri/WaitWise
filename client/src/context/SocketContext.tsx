@@ -18,9 +18,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    const socketUrl = window.location.origin.includes('localhost:5173')
+    const socketUrl = window.location.origin.includes('localhost')
       ? 'http://localhost:5000'
-      : window.location.origin;
+      : 'https://waitwise-server.onrender.com';
 
     const s = io(socketUrl, {
       transports: ['websocket', 'polling'],
